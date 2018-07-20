@@ -1,35 +1,36 @@
 const net = require('net');
 
 const clients = [];
-
-const server = net.createServer(function (connection){
-
-  connection.name = connection.remoteAddress + ':' + connection.remotePort;
+const server = new net.createServer((connection) => {
+  console.log('client connected');
   clients.push(connection);
-  console.log(connection.name + ' connected');
 
+  connection.on('data', (chunk) => {
+    broadcast(chunk, connection);
+  })
 
-  connection.on('data', function(data){
-    broadcast(connection.name + '> ' + data, connection);
-  }) 
-   
-  server.on('error', function(){
+  connection.on('end', () => {
+    clients.splice(clients.indexOf(connection), 1);
+    console.log('client disconnected');
+  })
+
+  server.on('error', (err) => {
     throw err;
-  }) 
-  
-  function broadcast(message, sender) {
-    clients.map(client => {
-      if(client === sender) return;
-      client.write(message);
-      process.stdout.write(message);
+  })
+
+  function broadcast(data, sender) {
+    clients.forEach(client => {
+      if (client !== sender) {
+        client.write(data);
+        process.stdout.write(data);
+      }
     })
-    
   }
+
 
 });
 
-
-  
-server.listen(3000, function () {
-  console.log('server listening to port 3000');
+server.listen(3000, () => {
+  console.log('port 3000');
 })
+

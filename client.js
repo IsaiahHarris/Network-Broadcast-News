@@ -1,23 +1,18 @@
 const net = require('net');
+const port = 3000;
+const client = new net.Socket();
 
-var HOST = '0.0.0.0';
-var PORT = 3000;
+client.connect(port, () => {
+  client.write('client is writing');
 
-var client  = new net.Socket();
-client.connect(PORT, HOST, function(){
-  console.log('connected to: ' + HOST + ':' + PORT);
-  client.write('I am LIIIIT');
 })
 
-client.on('data',function(data) {
-  console.log(data.toString().trim());
-});
+client.on('data',(chunk)=> {
+  console.log(chunk.toString().trim());
+})
 
-client.on('end', function(){
+client.on('end', () => {
   console.log('client disconnected');
-});
-  
-process.stdin.on('data', function(chunk){
-  client.write(chunk);
-});
-  
+})
+
+process.stdin.pipe(client);
